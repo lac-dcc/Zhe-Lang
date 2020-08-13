@@ -10,6 +10,22 @@ operator fun Parser.plus(constant: String): Parser {
     return { b: String -> this(b).then(regex(constant)) }
 }
 
+operator fun Parser.div(parser: Parser): Parser {
+    return { b: String ->
+        val result: Result = this(b)
+        when (result) {
+            is Result.Fail -> parser(b)
+            is Result.Success<*> -> result
+        }
+    }
+}
+
+operator fun Parser.div(constant: String): Parser {
+    return { b: String ->
+       (this / regex(constant)).apply(b)
+    }
+}
+
 infix fun Parser.apply(input: String): Result = this(input)
 
 val integer: Parser = { input ->
@@ -25,11 +41,11 @@ val integer: Parser = { input ->
     }
 }
 
-val plus:   Parser = { input -> regex("\\+")(input)  }
+val plus: Parser = { input -> regex("\\+")(input) }
 
 val string: Parser = { input -> regex("\\w+")(input) }
 
-val space:  Parser = { input -> regex("\\s+")(input) }
+val space: Parser = { input -> regex("\\s+")(input) }
 
 val regex: (String) -> Parser = {
     constant: String -> { input: String ->

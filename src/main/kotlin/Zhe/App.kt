@@ -11,9 +11,9 @@ fun main(args: Array<String>) {
     val runner = Runner()
 
     runner.addEvent(
-        Event( openTags + regex("(\\s+|\\w+)*") + closeTags, 
-        { values -> 
-            println(values) 
+        SequencingEvent(arrayOf(regex("Hey") / "alguma", closeTags / openTags),
+        { values ->
+            println(values)
         }
     ))
 
