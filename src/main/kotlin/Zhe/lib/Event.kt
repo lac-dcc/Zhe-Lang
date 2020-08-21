@@ -22,9 +22,9 @@ public class SequencingEvent : IEvent {
     private val _parsers: Array<Parser>
     private val _function: (values: List<Any?>) -> Unit
 
-    constructor(parsers: Array<Parser>, function: (values: List<Any?>) -> Unit) {
+    constructor(parsers: List<Parser>, function: (values: List<Any?>) -> Unit) {
         this._stateTable = mutableMapOf()
-        this._parsers = parsers
+        this._parsers = parsers.toTypedArray()
         this._function = function
     }
 
@@ -49,8 +49,10 @@ public class SequencingEvent : IEvent {
             }
 
             when {
-                curr is Result.Success<*> && result is Result.Success<*> ->
-                    Result.Success(curr.tokens + result.tokens, "")
+                curr is Result.Success<*> && result is Result.Success<*> -> {
+                    val rest = if (result.rest.length < curr.rest.length) result.rest else curr.rest
+                    Result.Success(curr.tokens + result.tokens, rest)
+                }
                 else -> Result.Fail("Some Parser is Still Missing")
             }
         }

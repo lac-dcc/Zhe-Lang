@@ -4,18 +4,47 @@
 package Zhe
 import Zhe.lib.*
 
-val openTags: Parser = regex("<") + string + ">"
-val closeTags: Parser = regex("</") + string + ">"
+val openTags: Parser = regex("<a>")
+val closeTags: Parser = regex("</a>")
 
-fun main(args: Array<String>) {
+fun main() {
     val runner = Runner()
 
-    runner.addEvent(
-        SequencingEvent(arrayOf(regex("Hey") / "alguma", closeTags / openTags),
+    runner.addEvent(regex("YOU <a> alguma outra") contains "<a> alguma",
         { values ->
             println(values)
         }
-    ))
+    )
 
-    runner.invoke("Hey YOU <a> alguma outra coisa </a>")
+    runner.addEvent(integer,
+        { values ->
+            println(values)
+        }
+    )
+
+    runner.addEvent(regex("Hey "),
+        { values ->
+            println(values)
+        }
+    )
+
+    runner.addEvent(regex("YOU <a>") + " alguma outra",
+        { values ->
+            println(values)
+        }
+    )
+
+    runner.addEvent(regex("Hey") and regex(" alguma outra"),
+        { values ->
+            println(values)
+        }
+    )
+
+    runner.addEvent(openTags / "outra" and regex("alguma") / closeTags,
+        { values ->
+            println(values)
+        }
+    )
+
+    runner.invoke("Hey 12 YOU <a> alguma outra </a> coisa")
 }
