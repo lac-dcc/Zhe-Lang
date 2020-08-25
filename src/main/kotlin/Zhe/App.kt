@@ -4,47 +4,48 @@
 package Zhe
 import Zhe.lib.*
 
-val openTags: Parser = regex("<a>")
-val closeTags: Parser = regex("</a>")
+fun main(args: Array<String>) {
+    val input: String = """
+    if s != nil {
+        for _ , x := range s {
+        anything can go in here
+        }
+    }"""
 
-fun main() {
     val runner = Runner()
 
-    runner.addEvent(regex("YOU <a> alguma outra") contains "<a> alguma",
-        { values ->
-            println(values)
-        }
-    )
+    val FOR = regex("for") + many(string / ",", space) + ":= range " + string +
+              " \\{" + 
+              many(string, space) + 
+               "\\}"
 
-    runner.addEvent(integer,
-        { values ->
-            println(values)
-        }
-    )
+    val IF = regex("if ") + string + " != nil \\{" + 
+            many(FOR, space) + 
+            "}"
+    
+    runner.addEvent(IF,
+    { vals ->
+        // TODO: Implement a better model to handle the events
 
-    runner.addEvent(regex("Hey "),
-        { values ->
-            println(values)
-        }
-    )
+        val forVarStart = vals.indexOf("for")
+        val forVarEnd = vals.indexOf(":= range ")
+        val forVar1 = vals.subList(forVarStart + 1, forVarEnd).joinToString(separator = " ").trim()
 
-    runner.addEvent(regex("YOU <a>") + " alguma outra",
-        { values ->
-            println(values)
-        }
-    )
+        val forVar2 = vals.get(forVarEnd + 1)
 
-    runner.addEvent(regex("Hey") and regex(" alguma outra"),
-        { values ->
-            println(values)
-        }
-    )
+        val ifVar = vals.get(1)
 
-    runner.addEvent(openTags / "outra" and regex("alguma") / closeTags,
-        { values ->
-            println(values)
-        }
-    )
+        val bodyEnd = vals.indexOfFirst { e -> e == "}"}
+        val bodyInit = vals.indexOfLast { e -> e == " {"}
 
-    runner.invoke("Hey 12 YOU <a> alguma outra </a> coisa")
+        val body = vals.subList(bodyInit + 1, bodyEnd).joinToString(separator = " ")
+
+
+        if( ifVar == forVar2){
+            println("Code Rewritten: ")
+            println("for ${forVar1} := range ${ifVar} {\n\t${body}\n}")
+        }
+    })
+
+    runner.invoke(input)
 }

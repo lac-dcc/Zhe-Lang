@@ -1,24 +1,14 @@
-# Introduction
+import Zhe.lib.*
 
-This examples outlines how to implement a code refactor example,
-taken from the paper: Lightweight Multi-Language Syntax Transformation
-with Parser Parser Combinators.
+fun main(args: Array<String>) {
+    val input: String = """
+    if s != nil {
+        for _ , x := range s {
+        anything can go in here
+        }
+    }"""
 
-## Example
-
-Zhe Lang Specification:
-
-```
-Zhe File:
-```
-# TODO
-
-Zhe Lib Specification:
-
-
-```kotlin
-    import Zhe.lib.*
-
+    val runner = Runner()
 
     val FOR = regex("for") + many(string / ",", space) + ":= range " + string +
               " \\{" + 
@@ -29,17 +19,10 @@ Zhe Lib Specification:
             many(FOR, space) + 
             "}"
     
-    val input: String = """
-    if s != nil {
-        for _ , x := range s {
-        anything can go in here
-        }
-    }"""
-
-  fun main(args: Array<String>) {
-    val runner = Runner()
     runner.addEvent(IF,
     { vals ->
+        // TODO: Implement a better model to handle the events
+
         val forVarStart = vals.indexOf("for")
         val forVarEnd = vals.indexOf(":= range ")
         val forVar1 = vals.subList(forVarStart + 1, forVarEnd).joinToString(separator = " ").trim()
@@ -62,12 +45,3 @@ Zhe Lib Specification:
 
     runner.invoke(input)
 }
-```
-
-## Output
-```
-Code Rewritten:
-for _ , x := range s {
-        anything can go in here
-}
-```

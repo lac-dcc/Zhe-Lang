@@ -13,14 +13,49 @@ val integer: Parser = { input ->
     }
 }
 
+val many: (Parser, Parser) -> Parser = {
+    target, separator: Parser ->
+         { input: String ->
+            var parser = target / separator
+
+            var curString = input
+            var tokens: MutableList<Any?> = mutableListOf()
+
+            do {
+                val curResp = parser(curString)
+                when (curResp) {
+                    is Result.Fail -> separator(curString)
+                    is Result.Success<*> -> {
+                        tokens = (tokens + curResp.tokens).toMutableList()
+                        curString = curResp.rest
+                    }
+                }
+            } while (curResp is Result.Success<*>)
+
+            var resp: Result
+
+            if (tokens.isEmpty())
+                resp = Result.Fail("Parser not aplicable")
+            else
+                resp = Result.Success<Any?>(tokens, curString)
+            resp
+        }
+}
+
 val plus: Parser = { input -> regex("\\+")(input) }
 
 val string: Parser = { input -> regex("\\w+")(input) }
 
-val space: Parser = { input -> regex("\\s+")(input) }
+val space: Parser = { input -> _regex("\\s+", true)(input) }
 
 val regex: (String) -> Parser = {
-    constant: String -> { input: String ->
+    constant: String -> { input ->
+        _regex(constant, false)(input)
+    }
+}
+
+val _regex: (String, Boolean) -> Parser = {
+    constant: String, discart: Boolean -> { input: String ->
         val regex = Regex("^" + constant)
         val match = regex.find(input)
 
@@ -28,7 +63,13 @@ val regex: (String) -> Parser = {
             null -> Result.Fail("Expected '$constant' got '$input'")
             else -> {
                 val value = match.groupValues[0]
-                Result.Success<String>(listOf(value), input.substring(value.length))
+
+                var resp: Result
+                if (discart)
+                    resp = Result.Success<String>(listOf(), input.substring(value.length))
+                else
+                    resp = Result.Success<String>(listOf(value), input.substring(value.length))
+                resp
             }
         }
     }
