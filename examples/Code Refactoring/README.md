@@ -63,11 +63,11 @@ fun main(args: Array<String>) {
     val runner = Runner()
     
     runner.addEvent(IF,
-    { vals ->
-        val forVar1 = vals.get(4);
-        val forVar2 = vals.get(6)
-        val ifVar = vals.get(1)
-        val body = vals.get(8)
+    { events ->
+        val forVar1 = events.get(4);
+        val forVar2 = events.get(6)
+        val ifVar = events.get(1)
+        val body = events.get(8)
 
         if( ifVar == forVar2){
             println("Original code:\n$input\n\n")

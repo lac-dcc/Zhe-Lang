@@ -11,19 +11,21 @@ Input File:
 <a>normal text</a> 
 <a><strong>bold text</strong></a
 
+
+Zhe File:
+
 event tag = (<string>) text (</string>)
 event strong = <strong> (text | tag) </strong>
 event a = <a> (text | tag) </a>
 
-Zhe File:
 
 guard a(strong) (events) {
     println("Some Really important TEXT:")
 
-    val first = vals.indexOfLast { e -> e == "<strong>"}
-    val last = vals.indexOfLast { e -> e == "</strong>"}
+    val first = events.indexOfLast { e -> e == "<strong>"}
+    val last = events.indexOfLast { e -> e == "</strong>"}
     
-    print(vals.subList(first + 1, last))
+    print(events.subList(first + 1, last))
 }
 ```
 
@@ -41,12 +43,12 @@ import Zhe.lib.*
     val A = regex("<a>") + many(string / tag, space) + "</a>"
     
     runner.addEvent(A contains STRONG,
-    { vals ->
+    { events ->
         println("Some Really important TEXT:")
-        val first = vals.indexOfLast { e -> e == "<strong>"}
-        val last = vals.indexOfLast { e -> e == "</strong>"}
+        val first = events.indexOfLast { e -> e == "<strong>"}
+        val last = events.indexOfLast { e -> e == "</strong>"}
         
-        print(vals.subList(first + 1, last))
+        print(events.subList(first + 1, last))
     })
 
     runner.invoke(INPUT)
