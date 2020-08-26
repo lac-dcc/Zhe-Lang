@@ -14,9 +14,9 @@ Input File:
 
 Zhe File:
 
-event tag = (<string>) text (</string>)
-event strong = <strong> (text | tag) </strong>
-event a = <a> (text | tag) </a>
+event tag = ("<"string">") text ("</"string">")
+event strong = "<strong>" (text | tag) "</strong>"
+event a = "<a>" (text | tag) "</a>"
 
 
 guard a(strong) (events) {

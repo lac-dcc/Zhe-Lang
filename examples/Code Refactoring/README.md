@@ -19,9 +19,9 @@ if s != nil {
 
 Zhe File:
 
-event FOR = for (string | ,)+ := range string { text }
+event FOR = "for" (string | ,)+ ":= range" string "{" text "}"
 
-event IF = if string != nil { FOR }
+event IF = "if" string "!= nil {" FOR "}"
 
 guard IF (events) {
     val forVar1 = events.get(4);

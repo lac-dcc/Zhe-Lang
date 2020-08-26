@@ -18,7 +18,7 @@ Input File:
 Zhe File:
 
 event Boolean = 'true' | 'false'
-event Number = -?[0-9\.]+,[0-9]*
+event Number = "-?[0-9\.]+,[0-9]*"
 event FizzBuzz = 'fizz' | 'buzz'
 
 guard Boolean &: Number (events[]){ ... }
