@@ -13,35 +13,6 @@ val integer: Parser = { input ->
     }
 }
 
-val many: (Parser, Parser) -> Parser = {
-    target, separator: Parser ->
-         { input: String ->
-            var parser = target / separator
-
-            var curString = input
-            var tokens: MutableList<Any?> = mutableListOf()
-
-            do {
-                val curResp = parser(curString)
-                when (curResp) {
-                    is Result.Fail -> separator(curString)
-                    is Result.Success<*> -> {
-                        tokens = (tokens + curResp.tokens).toMutableList()
-                        curString = curResp.rest
-                    }
-                }
-            } while (curResp is Result.Success<*>)
-
-            var resp: Result
-
-            if (tokens.isEmpty())
-                resp = Result.Fail("Parser not aplicable")
-            else
-                resp = Result.Success<Any?>(tokens, curString)
-            resp
-        }
-}
-
 val plus: Parser = { input -> regex("\\+")(input) }
 
 val string: Parser = { input -> regex("\\w+")(input) }
@@ -72,5 +43,57 @@ val _regex: (String, Boolean) -> Parser = {
                 resp
             }
         }
+    }
+}
+
+val many: (Parser, Parser) -> Parser = {
+    target, separator: Parser ->
+         { input: String ->
+            var parser = target / separator
+
+            var curString = input
+            var tokens: MutableList<Any?> = mutableListOf()
+
+            do {
+                val curResp = parser(curString)
+                when (curResp) {
+                    is Result.Fail -> separator(curString)
+                    is Result.Success<*> -> {
+                        tokens = (tokens + curResp.tokens).toMutableList()
+                        curString = curResp.rest
+                    }
+                }
+            } while (curResp is Result.Success<*>)
+
+            var resp: Result
+
+            if (tokens.isEmpty())
+                resp = Result.Fail("Parser not aplicable")
+            else
+                resp = Result.Success<Any?>(tokens, curString)
+            resp
+        }
+}
+
+val text: Parser = { input -> 
+    _group(many(string, space), " ")(input)
+}
+
+val group: (Parser) -> Parser = { parser -> 
+    {input -> 
+        _group(parser, "")(input)
+    }
+}
+
+val _group: (Parser, String) -> Parser = { parser, separator ->
+    { input ->
+         val result = parser(input)
+
+         when(result){
+             is Result.Fail -> result
+             is Result.Success<*> -> Result.Success<String>(
+                                     listOf(result.tokens.joinToString(separator)), 
+                                     result.rest)
+         }
     }
 }

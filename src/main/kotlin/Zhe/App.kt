@@ -6,17 +6,17 @@ import Zhe.lib.*
 
 fun main(args: Array<String>) {
     val input: String = """
-    if s != nil {
-        for _ , x := range s {
-        anything can go in here
-        }
-    }"""
+if s != nil {
+    for _ , x := range s {
+    anything can go in here
+    }
+}"""
 
     val runner = Runner()
 
-    val FOR = regex("for") + many(string / ",", space) + ":= range " + string +
+    val FOR = regex("for") + group(many(string / ",", space)) + ":= range " + string +
               " \\{" + 
-              many(string, space) + 
+              text + 
                "\\}"
 
     val IF = regex("if ") + string + " != nil \\{" + 
@@ -26,22 +26,13 @@ fun main(args: Array<String>) {
     runner.addEvent(IF,
     { vals ->
         // TODO: Implement a better model to handle the events
-
-        val forVarStart = vals.indexOf("for")
-        val forVarEnd = vals.indexOf(":= range ")
-        val forVar1 = vals.subList(forVarStart + 1, forVarEnd).joinToString(separator = " ").trim()
-
-        val forVar2 = vals.get(forVarEnd + 1)
-
+        val forVar1 = vals.get(4);
+        val forVar2 = vals.get(6)
         val ifVar = vals.get(1)
-
-        val bodyEnd = vals.indexOfFirst { e -> e == "}"}
-        val bodyInit = vals.indexOfLast { e -> e == " {"}
-
-        val body = vals.subList(bodyInit + 1, bodyEnd).joinToString(separator = " ")
-
+        val body = vals.get(8)
 
         if( ifVar == forVar2){
+            println("Original code:$input\n\n")
             println("Code Rewritten: ")
             println("for ${forVar1} := range ${ifVar} {\n\t${body}\n}")
         }
