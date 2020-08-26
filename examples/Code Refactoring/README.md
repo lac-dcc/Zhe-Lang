@@ -9,52 +9,68 @@ with Parser Parser Combinators.
 Zhe Lang Specification:
 
 ```
+Input File: 
+
+if s != nil {
+    for _ , x := range s {
+        anything can go in here
+    }
+}
+
 Zhe File:
+
+event FOR = for (string | ,)+ := range string { text }
+
+event IF = if string != nil { FOR }
+
+guard IF (events) {
+    val forVar1 = events.get(4);
+    val forVar2 = events.get(6)
+    val ifVar = events.get(1)
+    val body = events.get(8)
+
+    if( ifVar == forVar2){
+        println("Original code:\n$input\n\n")
+        println("Code Rewritten: ")
+        println("for ${forVar1} := range ${ifVar} {\n\t${body}\n}")
+    }
+}
 ```
-# TODO
 
 Zhe Lib Specification:
 
 
 ```kotlin
-    import Zhe.lib.*
 
-
-    val FOR = regex("for") + many(string / ",", space) + ":= range " + string +
-              " \\{" + 
-              many(string, space) + 
-               "\\}"
-
-    val IF = regex("if ") + string + " != nil \\{" + 
-            many(FOR, space) + 
-            "}"
-    
-    val input: String = """
+val input: String = """
     if s != nil {
         for _ , x := range s {
         anything can go in here
         }
     }"""
 
-  fun main(args: Array<String>) {
+val FOR = regex("for") + group(many(string / ",", space)) + ":= range " + string +
+              " \\{" + 
+              text + 
+               "\\}"
+
+val IF = regex("if ") + string + " != nil \\{" + 
+            many(FOR, space) + 
+            "}"
+
+fun main(args: Array<String>) {
+
     val runner = Runner()
+    
     runner.addEvent(IF,
     { vals ->
-        val forVarStart = vals.indexOf("for")
-        val forVarEnd = vals.indexOf(":= range ")
-        val forVar1 = vals.subList(forVarStart + 1, forVarEnd).joinToString(separator = " ").trim()
-
-        val forVar2 = vals.get(forVarEnd + 1)
-
+        val forVar1 = vals.get(4);
+        val forVar2 = vals.get(6)
         val ifVar = vals.get(1)
-
-        val bodyEnd = vals.indexOfFirst { e -> e == "}"}
-        val bodyInit = vals.indexOfLast { e -> e == " {"}
-
-        val body = vals.subList(bodyInit + 1, bodyEnd).joinToString(separator = " ")
-
+        val body = vals.get(8)
 
         if( ifVar == forVar2){
+            println("Original code:\n$input\n\n")
             println("Code Rewritten: ")
             println("for ${forVar1} := range ${ifVar} {\n\t${body}\n}")
         }
