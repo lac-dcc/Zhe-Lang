@@ -15,7 +15,7 @@ operator fun Parser.div(parser: Parser): Parser {
         val result: Result = this(b)
         when (result) {
             is Result.Fail -> parser(b)
-            is Result.Success<*> -> result
+            is Result.Success -> result
         }
     }
 }
@@ -32,7 +32,7 @@ infix fun Parser.`contains`(parser: Parser): Parser {
 
         when (result) {
             is Result.Fail -> result
-            is Result.Success<*> -> {
+            is Result.Success -> {
                 val newInput = b.substring(0, b.length - result.rest.length)
                 var finalResult: Result = Result.Fail("The events are not nested")
 
@@ -40,8 +40,8 @@ infix fun Parser.`contains`(parser: Parser): Parser {
                     val substr = newInput.substring(i)
 
                     finalResult = parser(substr)
-                    if (finalResult is Result.Success<*>){
-                        finalResult = Result.Success<Any?>(result.tokens + finalResult.tokens
+                    if (finalResult is Result.Success){
+                        finalResult = Result.Success(result.tokens + finalResult.tokens
                                                          , result.rest
                                                          )
                         break

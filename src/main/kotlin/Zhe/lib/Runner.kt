@@ -12,10 +12,10 @@ public class Runner {
         return this._events.size - 1
     }
 
-    public fun addEvent(parser: Parser, function: (values: List<Any?>) -> Unit): Int =
+    public fun addEvent(parser: Parser, function: (values: Map<String, Token<*>>) -> Unit): Int =
         this.addEvent(Event(parser, function))
 
-    public fun addEvent(parsers: List<Parser>, function: (values: List<Any?>) -> Unit): Int =
+    public fun addEvent(parsers: List<Parser>, function: (values: Map<String, Token<*>>) -> Unit): Int =
         this.addEvent(SequencingEvent(parsers, function))
 
     public fun removeEvent(event: IEvent) {
@@ -33,16 +33,15 @@ public class Runner {
                 do{
                     val result = event.parse(remainingString)
                     when (result) {
-                        is Result.Success<*> -> {
+                        is Result.Success -> {
                             event.invoke(result.tokens)
                             remainingString = result.rest
                         }
                         is Result.Fail -> {
                             remainingString = remainingString.substring(1)
-                            Unit
                         }
                     }
-                }while(remainingString.length > 0);
+                } while(remainingString.length > 0);
             })
     }
 }

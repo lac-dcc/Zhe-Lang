@@ -8,7 +8,7 @@ val integer: Parser = { input ->
         null -> Result.Fail("Expected integer got '$input'")
         else -> {
             val value = match.groupValues[0]
-            Result.Success<Int>(listOf(value.toInt()), input.substring(value.length))
+            Result.Success(Token<Int>(value.toInt()), input.substring(value.length))
         }
     }
 }
@@ -25,6 +25,20 @@ val regex: (String) -> Parser = {
     }
 }
 
+val name: (String, Parser) -> Parser = { 
+    name, parser -> {input: String ->
+        val result = parser(input)
+
+        when(result){
+            is Result.Success -> {
+                val newTokens = result.tokens.map { t-> t.rename(name) }
+                Result.Success(newTokens, result.rest)
+            }
+            is Result.Fail -> result
+        }
+    }
+}
+
 val _regex: (String, Boolean) -> Parser = {
     constant: String, discart: Boolean -> { input: String ->
         val regex = Regex("^" + constant)
@@ -37,9 +51,9 @@ val _regex: (String, Boolean) -> Parser = {
 
                 var resp: Result
                 if (discart)
-                    resp = Result.Success<String>(listOf(), input.substring(value.length))
+                    resp = Result.Success(listOf(), input.substring(value.length))
                 else
-                    resp = Result.Success<String>(listOf(value), input.substring(value.length))
+                    resp = Result.Success(Token(value), input.substring(value.length))
                 resp
             }
         }
@@ -52,25 +66,25 @@ val many: (Parser, Parser) -> Parser = {
             var parser = target / separator
 
             var curString = input
-            var tokens: MutableList<Any?> = mutableListOf()
+            var tokens: MutableList<Token<*>> = mutableListOf()
 
             do {
                 val curResp = parser(curString)
                 when (curResp) {
                     is Result.Fail -> separator(curString)
-                    is Result.Success<*> -> {
+                    is Result.Success -> {
                         tokens = (tokens + curResp.tokens).toMutableList()
                         curString = curResp.rest
                     }
                 }
-            } while (curResp is Result.Success<*>)
+            } while (curResp is Result.Success)
 
             var resp: Result
 
             if (tokens.isEmpty())
                 resp = Result.Fail("Parser not aplicable")
             else
-                resp = Result.Success<Any?>(tokens, curString)
+                resp = Result.Success(tokens, curString)
             resp
         }
 }
@@ -91,8 +105,8 @@ val _group: (Parser, String) -> Parser = { parser, separator ->
 
          when(result){
              is Result.Fail -> result
-             is Result.Success<*> -> Result.Success<String>(
-                                     listOf(result.tokens.joinToString(separator)), 
+             is Result.Success -> Result.Success(
+                                     Token<String>(result.tokens.joinToString(separator).trim()), 
                                      result.rest)
          }
     }
