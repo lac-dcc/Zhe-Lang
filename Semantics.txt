@@ -1,0 +1,41 @@
+string ::= "[<any UTF-8 character>]+"
+regex ::= r"<regular expression>"
+identifier = [aZ_]+
+
+parser ::= string | regex    \\ base cases
+        | (identifier':')?parser    \\ naming
+        | parser '+' parser   \\ sequencing
+        | parser '|' parser   \\ or
+        | parser '>' parser   \\ and
+        | parser'('parser')'  \\ contains
+
+event ::= 'event' identifier '=' parser
+guard ::= 'guard' (identifier | parser) '(events) {' + string* + '}'
+
+
+('Fernando Magno' | 'Fernando M') + sufix
+
+=======================================================================
+
+Token: (String, Type, Name)
+Result: Ok(Token[], String) | Err(String, String)
+Parser: String -> Result
+Combinator: (Parser -> Parser) -> Parser
+Guard: Token[] -> void
+Event: (Parser -> Guard) -> void
+Remaining: Result -> String
+
+Machine = (Event[], String, State)
+State = (Set(Events), String[cur text]) -> State
+
+
+\t.\g. if e1(t) then add(e2, events) else if e2(t) add(e1, events) 
+evalI nil _ = nil
+evalI t:I A = evalE A t 
+evalE = \A\t.fold(\e\A. e(t), A)
+
+resident = \A\e\p\t\g. if p(t) then (g(t), A+e) else (Unit, A+e)
+final = \A\e\p\t\g. if p(t) then (g(t), A) else (Unit, A+e)
+
+Entrada: somente tokens numericos
+cada p é um predicado númerico (numero -> true/false)
