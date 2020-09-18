@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 25ad720de898c5b8bb9717a13800a3e6077fbd80ee04365cdfc70183634024d6
+-- hash: c0f86d87d7c98d24176cba38c3f5453434f1253521a87e028af73195a0665aca
 
 name:           zhe-semantics
 version:        0.1.0.0
@@ -15,7 +15,6 @@ author:         Author name here
 maintainer:     example@example.com
 copyright:      2020 Author name here
 license:        BSD3
-license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md

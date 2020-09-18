@@ -1,76 +1,64 @@
 module Main where
 
-data Result = Ok [Integer] [Integer]
-            | Err [Integer]
-            deriving Show
+data GuardOutput = Satisfied [Integer] [Integer]
+                 | UnSatisfied [Integer]
 
-type Condition = [Integer] -> Result
+type Guard = [Integer] -> GuardOutput
 type Action = [Integer] -> ()
-type Event = Condition -> Action -> ()
+type Event = [Integer] -> ()
 
 
--- modPredicate :: Integer -> Condition
--- modPredicate _   [] = Err []
--- modPredicate num (head : tail) =
---   if (head `mod` num) == 0 then Ok [head] tail else Err tail
+event:: Guard -> Action -> Event
+event guard action input = case guard input of
+  Satisfied tokens remainingInput -> do
+    let _ = action tokens
+    event guard action remainingInput
+  UnSatisfied remainingInput -> event guard action remainingInput
 
 
--- doNothingAction :: Action
--- doNothingAction x = ()
-
-
-eval :: [Integer] -> Event
-eval []    _         _      = ()
-eval input condition action = eval remaining condition action where 
-    remaining = case condition input of
-        Err rest -> rest
-        Ok tokens rest -> do 
-          let _ = action tokens
-          rest
+eval:: [Event] -> [Integer] -> [()]
+eval events input = map (\e -> e input) events
 
 
 -- +
-combinatorOperator :: Condition -> Condition -> Condition
+combinatorOperator :: Guard -> Guard -> Guard
 combinatorOperator c1 c2 input = case c1 input of
-  Err rest -> Err rest
-  Ok t1 r1 -> case c2 r1 of
-    Err rest -> Err r1
-    Ok t2 r2 -> Ok (t1 ++ t2) r2
+  UnSatisfied rest -> UnSatisfied rest
+  Satisfied t1 r1 -> case c2 r1 of
+    UnSatisfied rest -> UnSatisfied r1
+    Satisfied t2 r2 -> Satisfied (t1 ++ t2) r2
 
     
 -- |
-orOperator :: Condition -> Condition -> Condition
+orOperator :: Guard -> Guard -> Guard
 orOperator c1 c2 input = case c1 input of
-  Ok t1 r1 -> Ok t1 r1
-  Err _    -> c2 input
+  Satisfied t1 r1 -> Satisfied t1 r1
+  UnSatisfied _    -> c2 input
 
 
 -- e1(e2)
-containsOperator :: Condition -> Condition -> Condition
-containsOperator c1 c2 input = case c1 input of
-  Err rest -> Err rest
-  Ok t1 r1 -> case checkIfCanSatisfyCondition c2 t1 of
-    Err _   -> Err r1
-    Ok t2 _ -> Ok t2 r1
+containsOperator :: Guard -> Guard -> Guard -> Guard
+containsOperator c1 c2 c3 = c1 `combinatorOperator` c2 `combinatorOperator` c3
 
 
 -- >
-sequenceOperator :: Condition -> Condition -> Condition
+sequenceOperator :: Guard -> Guard -> Guard
 sequenceOperator c1 c2 input = case c1 input of
-  Err rest -> Err rest
-  Ok t1 r1 -> case checkIfCanSatisfyCondition c2 r1 of
-      Err _ -> Err r1
-      Ok t2 r2 -> Ok (t1 ++ t2) r2
+  UnSatisfied rest -> UnSatisfied rest
+  Satisfied t1 r1 -> case checkIfCanSatisfyGuard c2 r1 of
+      UnSatisfied _ -> UnSatisfied r1
+      Satisfied t2 r2 -> Satisfied (t1 ++ t2) r2
 
 
-checkIfCanSatisfyCondition:: Condition -> [Integer] -> Result
-checkIfCanSatisfyCondition condition [] = Err []
-checkIfCanSatisfyCondition condition input = case condition input of
-    Err remain -> checkIfCanSatisfyCondition condition remain
-    Ok tokens remain -> Ok tokens remain
+checkIfCanSatisfyGuard:: Guard -> [Integer] -> GuardOutput
+checkIfCanSatisfyGuard guard [] = UnSatisfied []
+checkIfCanSatisfyGuard guard input = case guard input of
+    UnSatisfied remain -> checkIfCanSatisfyGuard guard remain
+    Satisfied tokens remain -> Satisfied tokens remain
 
--- >>> sequenceOperator (modPredicate 3) (modPredicate 4) [15, 46, 16, 24]
--- Ok [15,16] [24]
+
+-- >>> containsOperator (modPredicate 3) (modPredicate 47) (modPredicate 4) [15, 47, 16, 24]
+-- Ok [15,47,16] [24]
 --
 
 
