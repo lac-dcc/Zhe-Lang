@@ -71,7 +71,9 @@ zeroGuard (token:rest) = if token == 0 then
     UnSatisfied rest
 
 epsilon :: [Integer] -> GuardOutput
-epsilon _ = Satisfied [] []
+epsilon [] = Satisfied [] []
+epsilon _ = UnSatisfied []
+
 
 b :: [Integer] -> GuardOutput
 b input = orOperator  ( combinatorOperator b b ) 
