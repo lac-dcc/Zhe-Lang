@@ -1,14 +1,14 @@
 module Main where
 
 data GuardOutput = Satisfied [Integer] [Integer]
-                 | UnSatisfied [Integer]
+                 | UnSatisfied [Integer] deriving Show
 
 type Guard = [Integer] -> GuardOutput
 type Action = [Integer] -> ()
 type Event = [Integer] -> ()
 
 
-event:: Guard -> Action -> Event
+event :: Guard -> Action -> Event
 event guard action input = case guard input of
   Satisfied tokens remainingInput -> do
     let _ = action tokens
@@ -16,7 +16,7 @@ event guard action input = case guard input of
   UnSatisfied remainingInput -> event guard action remainingInput
 
 
-eval:: [Event] -> [Integer] -> [()]
+eval :: [Event] -> [Integer] -> [()]
 eval events input = map (\e -> e input) events
 
 
@@ -25,7 +25,7 @@ combinatorOperator :: Guard -> Guard -> Guard
 combinatorOperator c1 c2 input = case c1 input of
   UnSatisfied rest -> UnSatisfied rest
   Satisfied t1 r1 -> case c2 r1 of
-    UnSatisfied rest -> UnSatisfied r1
+    UnSatisfied _ -> UnSatisfied r1
     Satisfied t2 r2 -> Satisfied (t1 ++ t2) r2
 
     
@@ -51,15 +51,39 @@ sequenceOperator c1 c2 input = case c1 input of
 
 
 checkIfCanSatisfyGuard:: Guard -> [Integer] -> GuardOutput
-checkIfCanSatisfyGuard guard [] = UnSatisfied []
+checkIfCanSatisfyGuard _ [] = UnSatisfied []
 checkIfCanSatisfyGuard guard input = case guard input of
     UnSatisfied remain -> checkIfCanSatisfyGuard guard remain
     Satisfied tokens remain -> Satisfied tokens remain
 
+---------- Balanced Parenthesis Language Example --------------
 
--- >>> containsOperator (modPredicate 3) (modPredicate 47) (modPredicate 4) [15, 47, 16, 24]
--- Ok [15,47,16] [24]
+oneGuard :: [Integer] -> GuardOutput
+oneGuard (token:rest) = if token == 1 then
+    Satisfied [1] rest
+  else
+    UnSatisfied rest
+
+zeroGuard :: [Integer] -> GuardOutput
+zeroGuard (token:rest) = if token == 0 then
+    Satisfied [0] rest
+  else
+    UnSatisfied rest
+
+epsilon :: [Integer] -> GuardOutput
+epsilon _ = Satisfied [] []
+
+b :: [Integer] -> GuardOutput
+b input = orOperator  ( combinatorOperator b b ) 
+                      ( orOperator  epsilon
+                                    ( combinatorOperator 
+                                      oneGuard 
+                                      ( combinatorOperator b zeroGuard ) )
+                      ) input
+
+-- >>> orOperator 
+-- Satisfied [1,0] []
 --
 
-
+main :: IO()
 main = print ""
