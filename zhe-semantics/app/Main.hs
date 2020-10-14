@@ -59,16 +59,12 @@ checkIfCanSatisfyGuard guard input = case guard input of
 ---------- Balanced Parenthesis Language Example --------------
 
 oneGuard :: [Integer] -> GuardOutput
-oneGuard (token:rest) = if token == 1 then
-    Satisfied [1] rest
-  else
-    UnSatisfied rest
+oneGuard (0:rest) = UnSatisfied rest
+oneGuard (1:rest) = Satisfied [1] rest
 
 zeroGuard :: [Integer] -> GuardOutput
-zeroGuard (token:rest) = if token == 0 then
-    Satisfied [0] rest
-  else
-    UnSatisfied rest
+zeroGuard (0:rest) = Satisfied [0] rest
+zeroGuard (1:rest) = UnSatisfied rest
 
 epsilon :: [Integer] -> GuardOutput
 epsilon [] = Satisfied [] []
