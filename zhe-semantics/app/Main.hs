@@ -68,16 +68,17 @@ zeroGuard [] = UnSatisfied []
 zeroGuard (0:rest) = Satisfied [0] rest
 zeroGuard (1:rest) = UnSatisfied rest
 
-auxB :: [Integer] -> GuardOutput
-auxB = containsOperator zeroGuard (acceptsEpsilon b) oneGuard
-
 acceptsEpsilon :: Guard -> Guard
 acceptsEpsilon g input = case g input of
   Satisfied t r -> Satisfied t r
   UnSatisfied _ -> Satisfied [] input
 
+  
+auxB :: [Integer] -> GuardOutput
+auxB = containsOperator zeroGuard (acceptsEpsilon b) oneGuard
+
 b :: Guard
-b =   (auxB `combinatorOperator` auxB) `orOperator` auxB    
+b = (auxB `combinatorOperator` auxB) `orOperator` auxB    
 
 
 -- >>> b [0, 0, 1, 0, 1, 1]
