@@ -72,8 +72,8 @@ epsilon _ = UnSatisfied []
 
 
 b :: [Integer] -> GuardOutput
-b input = orOperator  ( combinatorOperator b b ) 
-                      ( orOperator  epsilon
+b input = orOperator  epsilon  
+                      ( orOperator  (combinatorOperator b b)
                                     ( combinatorOperator 
                                       oneGuard 
                                       ( combinatorOperator b zeroGuard ) )
