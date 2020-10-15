@@ -23,9 +23,9 @@ eval events input = map (\e -> e input) events
 -- +
 combinatorOperator :: Guard -> Guard -> Guard
 combinatorOperator c1 c2 input = case c1 input of
-  UnSatisfied rest -> UnSatisfied rest
+  UnSatisfied rest1 -> UnSatisfied rest1
   Satisfied t1 r1 -> case c2 r1 of
-    UnSatisfied _ -> UnSatisfied r1
+    UnSatisfied rest2 -> UnSatisfied rest2
     Satisfied t2 r2 -> Satisfied (t1 ++ t2) r2
 
     
@@ -33,10 +33,10 @@ combinatorOperator c1 c2 input = case c1 input of
 orOperator :: Guard -> Guard -> Guard
 orOperator c1 c2 input = case c1 input of
   Satisfied t1 r1 -> Satisfied t1 r1
-  UnSatisfied _    -> c2 input
+  UnSatisfied _ -> c2 input
 
 
--- e1(e2)
+-- e1(e2)e3
 containsOperator :: Guard -> Guard -> Guard -> Guard
 containsOperator c1 c2 c3 = c1 `combinatorOperator` c2 `combinatorOperator` c3
 
@@ -47,11 +47,11 @@ sequenceOperator c1 c2 input = case c1 input of
   UnSatisfied rest -> UnSatisfied rest
   Satisfied t1 r1 -> case checkIfCanSatisfyGuard c2 r1 of
       UnSatisfied _ -> UnSatisfied r1
-      Satisfied t2 r2 -> Satisfied (t1 ++ t2) r2
+      Satisfied t2 r2 -> Satisfied (t1 ++ t2) (drop (length t2) r1) 
 
 
 checkIfCanSatisfyGuard:: Guard -> [Integer] -> GuardOutput
-checkIfCanSatisfyGuard _ [] = UnSatisfied []
+checkIfCanSatisfyGuard g [] = g []
 checkIfCanSatisfyGuard guard input = case guard input of
     UnSatisfied remain -> checkIfCanSatisfyGuard guard remain
     Satisfied tokens remain -> Satisfied tokens remain
@@ -59,28 +59,29 @@ checkIfCanSatisfyGuard guard input = case guard input of
 ---------- Balanced Parenthesis Language Example --------------
 
 oneGuard :: [Integer] -> GuardOutput
+oneGuard [] = UnSatisfied []
 oneGuard (0:rest) = UnSatisfied rest
 oneGuard (1:rest) = Satisfied [1] rest
 
 zeroGuard :: [Integer] -> GuardOutput
+zeroGuard [] = UnSatisfied []
 zeroGuard (0:rest) = Satisfied [0] rest
 zeroGuard (1:rest) = UnSatisfied rest
 
-epsilon :: [Integer] -> GuardOutput
-epsilon [] = Satisfied [] []
-epsilon _ = UnSatisfied []
+auxB :: [Integer] -> GuardOutput
+auxB = containsOperator zeroGuard (acceptsEpsilon b) oneGuard
+
+acceptsEpsilon :: Guard -> Guard
+acceptsEpsilon g input = case g input of
+  Satisfied t r -> Satisfied t r
+  UnSatisfied _ -> Satisfied [] input
+
+b :: Guard
+b =   (auxB `combinatorOperator` auxB) `orOperator` auxB    
 
 
-b :: [Integer] -> GuardOutput
-b input = orOperator  epsilon  
-                      ( orOperator  (combinatorOperator b b)
-                                    ( combinatorOperator 
-                                      oneGuard 
-                                      ( combinatorOperator b zeroGuard ) )
-                      ) input
-
--- >>> orOperator 
--- Satisfied [1,0] []
+-- >>> b [0, 0, 1, 0, 1, 1]
+-- Satisfied [0,0,1,0,1,1] []
 --
 
 main :: IO()
