@@ -23,9 +23,9 @@ eval events input = map (\e -> e input) events
 -- +
 combinatorOperator :: Guard -> Guard -> Guard
 combinatorOperator c1 c2 input = case c1 input of
-  UnSatisfied rest1 -> UnSatisfied rest1
+  UnSatisfied rest1 -> UnSatisfied (tail input)
   Satisfied t1 r1 -> case c2 r1 of
-    UnSatisfied rest2 -> UnSatisfied rest2
+    UnSatisfied rest2 -> UnSatisfied (tail input)
     Satisfied t2 r2 -> Satisfied (t1 ++ t2) r2
 
     
@@ -44,10 +44,10 @@ containsOperator c1 c2 c3 = c1 `combinatorOperator` c2 `combinatorOperator` c3
 -- >
 sequenceOperator :: Guard -> Guard -> Guard
 sequenceOperator c1 c2 input = case c1 input of
-  UnSatisfied rest -> UnSatisfied rest
+  UnSatisfied rest -> UnSatisfied (tail input)
   Satisfied t1 r1 -> case checkIfCanSatisfyGuard c2 r1 of
-      UnSatisfied _ -> UnSatisfied r1
-      Satisfied t2 r2 -> Satisfied (t1 ++ t2) (drop (length t2) r1) 
+      UnSatisfied _ -> UnSatisfied (tail input)
+      Satisfied t2 _ -> Satisfied (t1 ++ t2) (drop (length t2) r1) 
 
 
 checkIfCanSatisfyGuard:: Guard -> [Integer] -> GuardOutput
@@ -78,10 +78,10 @@ auxB :: [Integer] -> GuardOutput
 auxB = containsOperator zeroGuard (acceptsEpsilon b) oneGuard
 
 b :: Guard
-b = (auxB `combinatorOperator` auxB) `orOperator` auxB    
+b = auxB `combinatorOperator` acceptsEpsilon auxB  
 
 
--- >>> b [0, 0, 1, 0, 1, 1]
+-- >>> b [0,0,1,0,1,1]
 -- Satisfied [0,0,1,0,1,1] []
 --
 
