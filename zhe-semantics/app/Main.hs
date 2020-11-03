@@ -8,81 +8,74 @@ type Action = [Integer] -> ()
 type Event = [Integer] -> ()
 
 
-event :: Guard -> Action -> Event
-event guard action input = case guard input of
-  Satisfied tokens remainingInput -> do
-    let _ = action tokens
-    event guard action remainingInput
-  UnSatisfied remainingInput -> event guard action remainingInput
+engine :: ([Integer] -> GuardOutput)  -> [Integer] -> ([Integer] -> ()) -> ()
+engine c input f = case loopOp c input of
+  Satisfied t r -> seq (f t) (engine c r f)
+  UnSatisfied _ -> ()
 
 
-eval :: [Event] -> [Integer] -> [()]
-eval events input = map (\e -> e input) events
-
+atomOp :: Integer -> Guard
+atomOp _ [] = UnSatisfied []
+atomOp t (h:r) = if t == h then 
+  Satisfied [t] r
+  else
+  UnSatisfied r
 
 -- +
-combinatorOperator :: Guard -> Guard -> Guard
-combinatorOperator c1 c2 input = case c1 input of
-  UnSatisfied rest1 -> UnSatisfied (tail input)
+combOp :: Guard -> Guard -> Guard
+combOp c1 c2 input = case c1 input of
+  UnSatisfied rest -> UnSatisfied rest
   Satisfied t1 r1 -> case c2 r1 of
-    UnSatisfied rest2 -> UnSatisfied (tail input)
+    UnSatisfied _ -> UnSatisfied r1
     Satisfied t2 r2 -> Satisfied (t1 ++ t2) r2
 
     
 -- |
-orOperator :: Guard -> Guard -> Guard
-orOperator c1 c2 input = case c1 input of
+orOp :: Guard -> Guard -> Guard
+orOp c1 c2 input = case c1 input of
   Satisfied t1 r1 -> Satisfied t1 r1
   UnSatisfied _ -> c2 input
 
-
--- e1(e2)e3
-containsOperator :: Guard -> Guard -> Guard -> Guard
-containsOperator c1 c2 c3 = c1 `combinatorOperator` c2 `combinatorOperator` c3
-
-
--- >
-sequenceOperator :: Guard -> Guard -> Guard
-sequenceOperator c1 c2 input = case c1 input of
-  UnSatisfied rest -> UnSatisfied (tail input)
-  Satisfied t1 r1 -> case checkIfCanSatisfyGuard c2 r1 of
-      UnSatisfied _ -> UnSatisfied (tail input)
-      Satisfied t2 _ -> Satisfied (t1 ++ t2) (drop (length t2) r1) 
-
-
-checkIfCanSatisfyGuard:: Guard -> [Integer] -> GuardOutput
-checkIfCanSatisfyGuard g [] = g []
-checkIfCanSatisfyGuard guard input = case guard input of
-    UnSatisfied remain -> checkIfCanSatisfyGuard guard remain
-    Satisfied tokens remain -> Satisfied tokens remain
-
----------- Balanced Parenthesis Language Example --------------
-
-oneGuard :: [Integer] -> GuardOutput
-oneGuard [] = UnSatisfied []
-oneGuard (0:rest) = UnSatisfied rest
-oneGuard (1:rest) = Satisfied [1] rest
-
-zeroGuard :: [Integer] -> GuardOutput
-zeroGuard [] = UnSatisfied []
-zeroGuard (0:rest) = Satisfied [0] rest
-zeroGuard (1:rest) = UnSatisfied rest
-
-acceptsEpsilon :: Guard -> Guard
-acceptsEpsilon g input = case g input of
+-- ?
+optOp :: Guard -> Guard
+optOp c1 input = case c1 input of
   Satisfied t r -> Satisfied t r
   UnSatisfied _ -> Satisfied [] input
 
-  
-auxB :: [Integer] -> GuardOutput
-auxB = containsOperator zeroGuard (acceptsEpsilon b) oneGuard
+-- >
+seqOp :: Guard -> Guard -> Guard
+seqOp c1 c2 input = case c1 input of
+  UnSatisfied rest -> UnSatisfied rest
+  Satisfied t1 r1 -> case loopOp c2 r1 of
+      UnSatisfied [] -> UnSatisfied []
+      Satisfied t2 rest -> Satisfied (t1 ++ t2) rest 
 
-b :: Guard
-b = auxB `combinatorOperator` acceptsEpsilon auxB  
+
+loopOp:: Guard -> [Integer] -> GuardOutput
+loopOp c1 [] = c1 []
+loopOp c1 input = case c1 input of
+    UnSatisfied rest -> loopOp c1 rest
+    Satisfied t1 r1 -> Satisfied t1 r1
+
+---------- Balanced Parenthesis Language Example --------------
+
+  
+-- auxB :: [Integer] -> GuardOutput
+-- auxB = zeroGuard `combinatorOperator` acceptsEpsilon b `combinatorOperator` oneGuard
+
+-- b :: Guard
+-- b = auxB `combinatorOperator` acceptsEpsilon auxB 
+
+-- c = oneGuard `orOperator` zeroGuard
 
 
 -- >>> b [0,0,1,0,1,1]
--- Satisfied [0,0,1,0,1,1] []
+-- (Error while loading modules for evaluation)
+-- [1 of 1] Compiling Engine           ( /Users/joaosaffran/Zhe/zhe-semantics/app/Engine.hs, interpreted )
+-- <BLANKLINE>
+-- /Users/joaosaffran/Zhe/zhe-semantics/app/Engine.hs:27:1-6: error:
+--     The type signature for ‘combOp’ lacks an accompanying binding
+-- Failed, no modules loaded.
 --
 
 main :: IO()
