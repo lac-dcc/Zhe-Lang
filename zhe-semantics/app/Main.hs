@@ -26,7 +26,7 @@ combOp :: Guard -> Guard -> Guard
 combOp c1 c2 input = case c1 input of
   UnSatisfied rest -> UnSatisfied rest
   Satisfied t1 r1 -> case c2 r1 of
-    UnSatisfied _ -> UnSatisfied r1
+    UnSatisfied _ -> UnSatisfied (tail input)
     Satisfied t2 r2 -> Satisfied (t1 ++ t2) r2
 
     
