@@ -3,30 +3,30 @@ import Zhe.lib.*
 import java.net.*
 import java.util.Scanner
 import java.io.File
-import kotlinx.coroutines.*
+import kotlin.concurrent.*
 
+// fun getFileContent(filename: String): String {
+
+//     return File(filename).readLines().joinToString("\n");
 // }
-fun main(args: Array<String>) {
-    var aTag: Parser = constant("href=");
 
+fun main(args: Array<String>) {
+    var aTag: Parser = regex("for\\(") + regex(".*\\)") + space + constant("{") + regex(".*\\}");
     val runner = Runner()
 
     runner.addEvent(aTag,
-    { _ ->
+    { vals ->
         // println(vals)
     })
     println("name,size(kb),parsing,invoke,substring,mesured,total")
-    // runBlocking {
-    //     val jobsList: MutableList<Job> = mutableListOf()
-        File("./experiments/4.2/files/pages_content").walkTopDown().forEach( { file ->
-            if(!file.absolutePath.equals("/Users/joaosaffran/Zhe/./experiments/4.2/files/pages_content")){ 
-                val stream = ZheStream(file.bufferedReader())
-
+    File("./experiments/4.3/angha/").walkTopDown().forEach( { file ->
+         
+        if(!file.absolutePath.equals("/Users/joaosaffran/Zhe/./experiments/4.3/angha")){
+            val stream = ZheStream(file.bufferedReader())
                 val size = file.length()/1024
                 print(file.name + "," + size + ",")
                 var totalTime: Double = 0.0;
                 val b = System.currentTimeMillis()
-                
                 while(stream.hasNext()){
                     val str = stream.next()
                     runner.invoke(str)
@@ -36,9 +36,7 @@ fun main(args: Array<String>) {
                 val t: Double = (e - b).toDouble()
                 totalTime += t;
                 runner.printTimes()
-                println(",${totalTime/1000.0}")
-            }
-        })
-        // jobsList.joinAll()
-    // }    
+                println(",${totalTime/1000.0}") 
+        }
+    });
 }

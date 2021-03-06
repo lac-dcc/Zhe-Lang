@@ -1,8 +1,8 @@
 package Zhe.lib
 
 sealed class Result {
-    data class Success(val tokens: List<Token<*>>, val rest: String) : Result() {
-        constructor(value: Token<*>, rest: String) : this(listOf(value), rest);
+    data class Success(val tokens: List<Token<*>>, val rest: StringBuilder) : Result() {
+        constructor(value: Token<*>, rest: StringBuilder) : this(listOf(value), rest);
 
         override fun then(parser: Parser): Result {
             val result = parser(this.rest)

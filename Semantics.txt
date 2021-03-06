@@ -6,8 +6,9 @@ parser ::= string | regex    \\ base cases
         | (identifier':')?parser    \\ naming
         | parser '+' parser   \\ sequencing
         | parser '|' parser   \\ or
-        | parser '>' parser   \\ and
-        | parser'('parser')'  \\ contains
+        | parser '>' parser   \\ or
+        | 'loop' parser   \\ and
+        | parser'?'  \\ contains
 
 event ::= 'event' identifier '=' parser
 guard ::= 'guard' (identifier | parser) '(events) {' + string* + '}'

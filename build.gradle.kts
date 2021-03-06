@@ -24,7 +24,7 @@ dependencies {
 
     // Use the Kotlin JDK 8 standard library.
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7")
     // Use the Kotlin test library.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
@@ -35,4 +35,17 @@ dependencies {
 application {
     // Define the main class for the application.
     mainClassName = "Zhe.AppKt"
+}
+
+val jar by tasks.getting(Jar::class) {
+    manifest {
+        attributes["Main-Class"] = "Zhe.AppKt"
+    }
+    // To add all of the dependencies otherwise a "NoClassDefFoundError" error
+    from(sourceSets.main.get().output)
+
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+    })
 }

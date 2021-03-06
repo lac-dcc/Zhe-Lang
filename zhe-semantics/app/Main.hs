@@ -9,8 +9,8 @@ type Event = [Integer] -> ()
 
 
 engine :: ([Integer] -> GuardOutput)  -> [Integer] -> ([Integer] -> ()) -> ()
-engine c input f = case loopOp c input of
-  Satisfied t r -> seq (f t) (engine c r f)
+engine observer stream action = case loopOp observer stream of
+  Satisfied t r -> seq (action t) (engine observer r action)
   UnSatisfied _ -> ()
 
 
@@ -22,7 +22,7 @@ atomOp t (h:r) = if t == h then
   UnSatisfied r
 
 -- +
-combOp :: Guard -> Guard -> Guard
+combOp :: ([Integer] -> GuardOutput) -> ([Integer] -> GuardOutput) -> [Integer] -> GuardOutput
 combOp c1 c2 input = case c1 input of
   UnSatisfied rest -> UnSatisfied rest
   Satisfied t1 r1 -> case c2 r1 of

@@ -21,16 +21,14 @@ fun main(args: Array<String>) {
         File("./experiments/4.2/files/pages_content").walkTopDown().forEach( { file ->
             if(!file.absolutePath.equals("/Users/joaosaffran/Zhe/./experiments/4.2/files/pages_content")){ 
                 val stream = ZheStream(file.bufferedReader())
-
                 val size = file.length()/1024
                 print(file.name + "," + size + ",")
                 var totalTime: Double = 0.0;
                 val b = System.currentTimeMillis()
-                
                 while(stream.hasNext()){
                     val str = stream.next()
                     runner.invoke(str)
-                    println(str.length)
+                    // println(str.length)
                 }
                 val e = System.currentTimeMillis()
                 val t: Double = (e - b).toDouble()
